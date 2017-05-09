@@ -34,64 +34,73 @@ define([
     "toastrForMendix/lib/jquery-1.11.2",
     "toastrForMendix/lib/toastr",
 
-], function (declare, _WidgetBase, dom, dojoDom, dojoProp, dojoGeometry, dojoClass, dojoStyle, dojoConstruct, dojoArray, dojoLang, dojoText, dojoHtml, dojoEvent, _jQuery, _toastr) {
+], function(declare, _WidgetBase, dom, dojoDom, dojoProp, dojoGeometry, dojoClass, dojoStyle, dojoConstruct, dojoArray, dojoLang, dojoText, dojoHtml, dojoEvent, _jQuery, _toastr) {
     "use strict";
 
-    var $ = _jQuery.noConflict(true); 
+    var $ = _jQuery.noConflict(true);
     $ = _toastr.createInstance($);
 
-    return declare("toastrForMendix.widget.toastrForMendix", [ _WidgetBase ], {
+    return declare("toastrForMendix.widget.toastrForMendix", [_WidgetBase], {
 
 
         // Internal variables.
         _handles: null,
         _contextObj: null,
+        _interval: null,
 
-        constructor: function () { 
+        constructor: function() {
             this._handles = [];
         },
 
-        postCreate: function () {
-            logger.debug(this.id + ".postCreate");         
+        postCreate: function() {
+            logger.debug(this.id + ".postCreate");
+
         },
 
-        update: function (obj, callback) {
+        update: function(obj, callback) {
             logger.debug(this.id + ".update");
 
             this._contextObj = obj;
             this._resetSubscriptions();
             this._updateRendering(callback);
+            if (!this._interval) {
+                this._interval = setInterval(dojoLang.hitch(this, this._updateRendering, callback), 10 * 1000)
+            }
+
         },
 
-        resize: function (box) {
-          logger.debug(this.id + ".resize");
+        resize: function(box) {
+            logger.debug(this.id + ".resize");
         },
 
-        uninitialize: function () {
-          logger.debug(this.id + ".uninitialize");
+        uninitialize: function() {
+            if (this._interval) {
+                clearInterval(this._interval);
+                console.log('interval cleared');
+            }
+            logger.debug(this.id + ".uninitialize");
         },
 
-        _updateRendering: function (callback) {
+        _updateRendering: function(callback) {
             logger.debug(this.id + "._updateRendering");
             var self = this;
 
-            if( this._contextObj.get(this.loadNotificationsAttribute)){
-                this._execMf(this._contextObj.getGuid(), this.loadMicroflow, function(objs){
-                        
-                        for( var i = 0; i < objs.length; i++){                        
-                            self._createNotification(objs[i]);
-                        }
+            if (this._contextObj.get(this.loadNotificationsAttribute)) {
+                this._execMf(this._contextObj.getGuid(), this.loadMicroflow, function(objs) {
 
-                        mendix.lang.nullExec(callback);
-                    });
+                    for (var i = 0; i < objs.length; i++) {
+                        self._createNotification(objs[i]);
+                    }
 
-            }
-            else{
+                    mendix.lang.nullExec(callback);
+                });
+
+            } else {
                 mendix.lang.nullExec(callback);
             }
         },
 
-        _getOptionsForObject : function(obj){
+        _getOptionsForObject: function(obj) {
             var self = this;
             var options = {};
             options.closeButton = this.showCloseAttribute ? obj.get(this.showCloseAttribute) : this.showCloseDefault;
@@ -110,56 +119,56 @@ define([
             options.preventDuplicates = this.preventDuplicates;
             options.newestOnTop = this.newestOnTop;
 
-            if(this.toastClass){
+            if (this.toastClass) {
                 options.toastClass = this.toastClass;
             }
-            if(this.errorIconClass || this.infoIconClass || this.successIconClass || this.warningIconClass){
-                options.iconClasses = {};            
-                if(this.errorIconClass){
+            if (this.errorIconClass || this.infoIconClass || this.successIconClass || this.warningIconClass) {
+                options.iconClasses = {};
+                if (this.errorIconClass) {
                     options.iconClasses.error = this.errorIconClass;
                 }
 
-                if(this.infoIconClass){
+                if (this.infoIconClass) {
                     options.iconClasses.info = this.infoIconClass;
                 }
 
-                if(this.successIconClass){
+                if (this.successIconClass) {
                     options.iconClasses.success = this.successIconClass;
                 }
 
-                if(this.warningIconClass){
+                if (this.warningIconClass) {
                     options.iconClasses.warning = this.warningIconClass;
                 }
             }
 
-            if(this.onClickMicroflow){
-                options.onclick = function () {
-                        self._execMf(obj.getGuid(), self.onClickMicroflow);
+            if (this.onClickMicroflow) {
+                options.onclick = function() {
+                    self._execMf(obj.getGuid(), self.onClickMicroflow);
                 };
             }
 
-            if(this.onCloseClickMicroflow){
-                options.onCloseClick = function () {
-                        self._execMf(obj.getGuid(), self.onCloseClickMicroflow);
+            if (this.onCloseClickMicroflow) {
+                options.onCloseClick = function() {
+                    self._execMf(obj.getGuid(), self.onCloseClickMicroflow);
                 };
             }
 
-            if(this.onHiddenMicroflow){
-                options.onHidden = function () {
-                        self._execMf(obj.getGuid(), self.onHiddenMicroflow);
+            if (this.onHiddenMicroflow) {
+                options.onHidden = function() {
+                    self._execMf(obj.getGuid(), self.onHiddenMicroflow);
                 };
             }
 
-            if(this.onShownMicroflow){
-                options.onShown = function () {
-                        self._execMf(obj.getGuid(), self.onShownMicroflow);
+            if (this.onShownMicroflow) {
+                options.onShown = function() {
+                    self._execMf(obj.getGuid(), self.onShownMicroflow);
                 };
             }
-            
+
             return options;
         },
 
-        _createNotification: function(obj){
+        _createNotification: function(obj) {
             var options = this._getOptionsForObject(obj);
             var type = this.typeAttribute ? obj.get(this.typeAttribute) : this.typeDefault;
             var title = obj.get(this.titleAttribute);
@@ -168,9 +177,9 @@ define([
             toastr.options = options;
 
             toastr[type](message, title);
-        },        
+        },
 
-        _execMf: function (guid, mf, cb) {
+        _execMf: function(guid, mf, cb) {
             if (guid && mf) {
                 mx.data.action({
                     params: {
@@ -178,12 +187,12 @@ define([
                         actionname: mf,
                         guids: [guid]
                     },
-                    callback: function (objs) {
+                    callback: function(objs) {
                         if (cb) {
                             cb(objs);
                         }
                     },
-                    error: function (e) {
+                    error: function(e) {
                         logger.error('Error running Microflow: ' + e);
                     }
                 }, this);
@@ -196,7 +205,7 @@ define([
             logger.debug(this.id + "._resetSubscriptions");
             // Release handles on previous object, if any.
             if (this._handles) {
-                dojoArray.forEach(this._handles, function (handle) {
+                dojoArray.forEach(this._handles, function(handle) {
                     mx.data.unsubscribe(handle);
                 });
                 this._handles = [];
@@ -211,7 +220,7 @@ define([
                     })
                 });
 
-                this._handles = [ objectHandle ];
+                this._handles = [objectHandle];
             }
         },
     });
