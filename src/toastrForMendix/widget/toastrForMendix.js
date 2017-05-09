@@ -42,6 +42,8 @@ define([
 
     return declare("toastrForMendix.widget.toastrForMendix", [_WidgetBase], {
 
+        //modeler
+        refreshTime: null,
 
         // Internal variables.
         _handles: null,
@@ -63,8 +65,8 @@ define([
             this._contextObj = obj;
             this._resetSubscriptions();
             this._updateRendering(callback);
-            if (!this._interval) {
-                this._interval = setInterval(dojoLang.hitch(this, this._updateRendering, callback), 10 * 1000)
+            if (this.refreshTime && this.refreshTime * 1 > 0 && !this._interval) {
+                this._interval = setInterval(dojoLang.hitch(this, this._updateRendering, callback), 1000 * this.refreshTime)
             }
 
         },

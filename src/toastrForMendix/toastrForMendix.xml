@@ -229,6 +229,11 @@
             <category>Behaviour</category>
             <description>Whether to write the notification object to the console.</description>
         </property>
+        <property key="refreshTime" type="integer" required="true" defaultValue="0">
+            <caption>Refresh Interval</caption>
+            <category>Behaviour</category>
+            <description>Interval to refresh the list of notifications (in seconds). >> '0' means on pageload</description>
+        </property>
         <property key="onClickMicroflow" type="microflow" required="false" entityProperty="notificationEntity">
             <caption>On Click</caption>
             <category>Events</category>
